@@ -1,0 +1,526 @@
+/* --- 1. Variables de Color y Base --- */
+:root {
+    /* Tema Claro (Default) */
+    --bg-color: #e0e5ec;
+    --text-color: #333a4f;
+    --text-color-light: #5a6683;
+    --primary-color: #0366d6;
+    --accent-color: #28a745; /* Verde para ingresos */
+    --danger-color: #d73a49; /* Rojo para egresos */
+    --shadow-light: rgba(255, 255, 255, 0.9);
+    --shadow-dark: rgba(163, 177, 198, 0.6);
+    --neumorphic-radius: 20px;
+    --app-padding: 16px;
+}
+
+body.dark-mode {
+    --bg-color: #2c2f36;
+    --text-color: #e0e5ec;
+    --text-color-light: #a0a8b4;
+    --primary-color: #58a6ff;
+    --accent-color: #34d058;
+    --danger-color: #f85149;
+    --shadow-light: rgba(58, 58, 58, 0.5);
+    --shadow-dark: rgba(25, 25, 25, 0.6);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent; /* Adiós al brillo azul de iOS */
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 16px;
+}
+
+h1, h2, h3 {
+    color: var(--text-color);
+    margin-bottom: 15px;
+}
+
+p {
+    color: var(--text-color-light);
+    line-height: 1.5;
+}
+
+/* --- 2. Estilos Neumórficos Genéricos --- */
+.neumorphic-flat {
+    background: var(--bg-color);
+}
+
+.neumorphic-convex {
+    background: var(--bg-color);
+    border-radius: var(--neumorphic-radius);
+    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    transition: all 0.2s ease-out;
+}
+.neumorphic-convex:active, .neumorphic-button.active {
+    box-shadow: inset 3px 3px 7px var(--shadow-dark), inset -3px -3px 7px var(--shadow-light);
+}
+
+.neumorphic-concave {
+    background: var(--bg-color);
+    border-radius: var(--neumorphic-radius);
+    box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
+}
+
+.neumorphic-inset { /* Para inputs */
+    background: var(--bg-color);
+    border-radius: 10px;
+    box-shadow: inset 3px 3px 7px var(--shadow-dark), inset -3px -3px 7px var(--shadow-light);
+    border: none;
+    padding: 12px 15px;
+    color: var(--text-color);
+    width: 100%;
+}
+.neumorphic-inset:focus {
+    outline: none;
+    box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
+}
+
+/* --- 3. Estructura de la App --- */
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Ocupa toda la altura */
+}
+
+#main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px var(--app-padding);
+    padding-top: 40px; /* Espacio para barra de estado iOS */
+    z-index: 10;
+}
+#main-header h1 {
+    font-size: 28px;
+    margin: 0;
+}
+#main-header button {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+    margin-left: 10px;
+}
+
+#main-content {
+    flex-grow: 1; /* Ocupa todo el espacio disponible */
+    overflow-y: auto; /* Permite scroll */
+    padding: 0 var(--app-padding) 100px var(--app-padding); /* Padding inferior para no chocar con tab-bar */
+}
+
+.screen {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+.screen.active {
+    display: block;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- 4. Barra de Navegación (Tab Bar) --- */
+#tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 0 25px 0; /* Padding inferior para iOS Home bar */
+    border-top-left-radius: var(--neumorphic-radius);
+    border-top-right-radius: var(--neumorphic-radius);
+    z-index: 100;
+}
+.tab-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: none;
+    font-size: 10px;
+    color: var(--text-color-light);
+    flex-grow: 1;
+    cursor: pointer;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin: 0 5px;
+    border-radius: 12px;
+}
+.tab-button i {
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+.tab-button.active {
+    color: var(--primary-color);
+    box-shadow: inset 3px 3px 7px var(--shadow-dark), inset -3px -3px 7px var(--shadow-light);
+}
+
+/* --- 5. Botón Flotante (+) --- */
+#btn-add-floating {
+    position: fixed;
+    bottom: 100px; /* Justo sobre la tab-bar */
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 30px;
+    color: white;
+    background-color: var(--primary-color);
+    border: none;
+    cursor: pointer;
+    z-index: 99;
+}
+#btn-add-floating:active {
+    transform: scale(0.95);
+    background-color: #0256b3;
+}
+body.dark-mode #btn-add-floating {
+    background-color: var(--primary-color);
+}
+body.dark-mode #btn-add-floating:active {
+    background-color: #3b8cff;
+}
+
+/* --- 6. Modales --- */
+#modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+#modal-backdrop.active {
+    display: block;
+    opacity: 1;
+}
+
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 25px;
+    z-index: 1001;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.modal.active {
+    display: block;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+.modal h2 {
+    text-align: center;
+    font-size: 20px;
+}
+
+/* --- 7. Formularios Dentro de Modales --- */
+.modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.modal form label {
+    font-size: 14px;
+    color: var(--text-color-light);
+    margin-bottom: -10px;
+}
+select.neumorphic-inset {
+    appearance: none;
+    -webkit-appearance: none;
+    /* Icono de flecha SVG para select */
+    background-image: var(--bg-select-arrow);
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 10px;
+    color: var(--text-color);
+}
+body {
+    --bg-select-arrow: url("data:image/svg+xml;charset=UTF8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 10 6'%3E%3Cpath fill='%23${encodeURIComponent('333a4f').substring(0, 6)}' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
+}
+
+body.dark-mode {
+    --bg-select-arrow: url("data:image/svg+xml;charset=UTF8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 10 6'%3E%3Cpath fill='%23${encodeURIComponent('e0e5ec').substring(0, 6)}' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
+}
+
+.toggle-group {
+    display: flex;
+    width: 100%;
+    border-radius: 10px;
+}
+.btn-toggle {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-color-light);
+    cursor: pointer;
+    border-radius: 10px;
+}
+.btn-toggle.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    box-shadow: inset 3px 3px 7px var(--shadow-dark), inset -3px -3px 7px var(--shadow-light);
+}
+
+/* --- 8. Botones Genéricos --- */
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text-color);
+    font-weight: 600;
+}
+.btn-primary {
+    width: 100%;
+    padding: 15px;
+    color: white;
+    background-color: var(--primary-color);
+    border-radius: 15px;
+}
+.btn-secondary {
+    width: 100%;
+    padding: 15px;
+    color: var(--text-color-light);
+    background: var(--bg-color);
+    border-radius: 15px;
+    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+}
+.btn-danger {
+    width: 100%;
+    padding: 15px;
+    color: white;
+    background-color: var(--danger-color);
+    border-radius: 15px;
+}
+
+/* --- 9. Componentes Específicos --- */
+.card {
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Pantalla Resumen */
+#total-balance {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+}
+.horizontal-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding: 10px 0 20px 0;
+}
+.account-summary-card {
+    flex-shrink: 0;
+    width: 140px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+/* Nuevo estilo para iconos de cuenta */
+.account-logo-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    color: white; /* Color del icono */
+    box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
+}
+
+/* Colores aleatorios para iconos de cuenta */
+.account-logo-icon.color-0 { background-color: #6C5CE7; } /* Amethyst */
+.account-logo-icon.color-1 { background-color: #00B894; } /* Medium Turquoise */
+.account-logo-icon.color-2 { background-color: #FF7675; } /* Coral */
+.account-logo-icon.color-3 { background-color: #FFEAA7; color: #333a4f; } /* Cream */
+.account-logo-icon.color-4 { background-color: #74B9FF; } /* Sky Blue */
+.account-logo-icon.color-5 { background-color: #FDCB6E; color: #333a4f; } /* Mustard */
+.account-logo-icon.color-6 { background-color: #A29BFE; } /* Lavender */
+.account-logo-icon.color-7 { background-color: #55E6C1; } /* Mint */
+.account-logo-icon.color-8 { background-color: #FAB1A0; color: #333a4f; } /* Peach */
+
+.account-summary-card p {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+}
+.account-summary-card span {
+    font-size: 12px;
+    color: var(--text-color-light);
+}
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+}
+.transaction-item.neumorphic-concave {
+    padding: 15px; /* Neumorphic needs padding */
+}
+.transaction-details {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    border-radius: 50%;
+    color: white;
+}
+.transaction-icon.ingreso {
+    background-color: var(--accent-color);
+}
+.transaction-icon.egreso {
+    background-color: var(--danger-color);
+}
+
+.transaction-info p {
+    font-weight: 600;
+    margin: 0;
+    font-size: 16px;
+}
+.transaction-info span {
+    font-size: 12px;
+    color: var(--text-color-light);
+}
+.transaction-amount {
+    font-weight: 700;
+}
+.transaction-amount.ingreso {
+    color: var(--accent-color);
+}
+.transaction-amount.egreso {
+    color: var(--danger-color);
+}
+.empty-state {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-color-light);
+}
+
+/* Pantalla Cuentas */
+.account-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+.account-card .account-logo-icon { /* Usar el mismo estilo de icono */
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+}
+.account-card-info {
+    flex-grow: 1;
+}
+.account-card-info p {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+.account-card-info span {
+    font-size: 14px;
+    color: var(--text-color-light);
+}
+.account-card-balance {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* Pantalla Metas y Deudas */
+.goal-card, .debt-card {
+    padding: 20px;
+    margin-bottom: 15px;
+}
+.goal-card-header, .debt-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.goal-card-header h3, .debt-card-header h3 {
+    margin: 0;
+}
+.goal-card-header button, .debt-card-header button {
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    color: var(--primary-color);
+}
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: var(--bg-color);
+    border-radius: 5px;
+    margin: 10px 0;
+    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+}
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--accent-color);
+    border-radius: 5px;
+    width: 0%; /* Se actualizará con JS */
+    transition: width 0.5s ease;
+}
+.goal-card p, .debt-card p {
+    margin: 5px 0 0 0;
+    font-size: 14px;
+    color: var(--text-color-light);
+}
+
+/* Pantalla Configuración */
+#category-list {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-radius: 10px;
+}
+.category-item button {
+    color: var(--danger-color);
+    font-size: 18px;
+}
+hr {
+    border: none;
+    height: 1px;
+    background-color: var(--shadow-dark);
+    margin: 20px 0;
+}

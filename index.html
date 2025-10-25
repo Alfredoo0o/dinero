@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Finanzas">
+    <title>Mis Finanzas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="neumorphic-flat">
+
+    <div id="app">
+        
+        <header id="main-header" class="neumorphic-flat">
+            <h1 id="screen-title">Resumen</h1>
+            <div>
+                <button id="btn-settings" class="neumorphic-convex">
+                    <i class="ph ph-gear"></i>
+                </button>
+                <button id="btn-theme-toggle" class="neumorphic-convex">
+                    <i class="ph-fill ph-sun"></i>
+                </button>
+            </div>
+        </header>
+
+        <main id="main-content">
+            
+            <section id="screen-resumen" class="screen active">
+                <div class="card neumorphic-convex">
+                    <h2>Patrimonio Total</h2>
+                    <p id="total-balance">$0</p>
+                </div>
+                <h3>Cuentas Principales</h3>
+                <div id="summary-accounts-list" class="horizontal-scroll">
+                    </div>
+                <h3>Transacciones Recientes</h3>
+                <div id="summary-transactions-list">
+                    <p class="empty-state">No hay transacciones aún.</p>
+                </div>
+            </section>
+            
+            <section id="screen-cuentas" class="screen">
+                <button id="btn-open-modal-account" class="btn-primary neumorphic-convex">Añadir Cuenta</button>
+                <div id="accounts-list">
+                    </div>
+            </section>
+            
+            <section id="screen-analisis" class="screen">
+                <div class="card neumorphic-concave">
+                    <h3>Gastos por Categoría (Últimos 30 días)</h3>
+                    <canvas id="category-chart"></canvas>
+                </div>
+                <div id="category-analysis-list">
+                    </div>
+            </section>
+            
+            <section id="screen-metas" class="screen">
+                <button id="btn-open-modal-goal" class="btn-primary neumorphic-convex">Añadir Meta</button>
+                <div id="goals-list">
+                    </div>
+            </section>
+            
+            <section id="screen-deudas" class="screen">
+                <button id="btn-open-modal-debt" class="btn-primary neumorphic-convex">Añadir Deuda</button>
+                <div id="debts-list">
+                    </div>
+            </section>
+        </main>
+
+        <button id="btn-add-floating" class="neumorphic-convex">+</button>
+
+        <nav id="tab-bar" class="neumorphic-concave">
+            <button class="tab-button neumorphic-flat active" data-screen="screen-resumen">
+                <i class="ph-fill ph-house"></i>
+                <span>Resumen</span>
+            </button>
+            <button class="tab-button neumorphic-flat" data-screen="screen-cuentas">
+                <i class="ph-fill ph-wallet"></i>
+                <span>Cuentas</span>
+            </button>
+            <button class="tab-button neumorphic-flat" data-screen="screen-analisis">
+                <i class="ph-fill ph-chart-pie-slice"></i>
+                <span>Análisis</span>
+            </button>
+            <button class="tab-button neumorphic-flat" data-screen="screen-metas">
+                <i class="ph-fill ph-target"></i>
+                <span>Metas</span>
+            </button>
+            <button class="tab-button neumorphic-flat" data-screen="screen-deudas">
+                <i class="ph-fill ph-receipt"></i>
+                <span>Deudas</span>
+            </button>
+        </nav>
+        
+    </div> <div id="modal-backdrop"></div>
+
+    <div id="modal-add-transaction" class="modal neumorphic-convex">
+        <h2>Nueva Transacción</h2>
+        <form id="form-add-transaction">
+            <div class="toggle-group">
+                <button type="button" id="btn-toggle-egreso" class="btn-toggle active">Egreso</button>
+                <button type="button" id="btn-toggle-ingreso" class="btn-toggle">Ingreso</button>
+            </div>
+            <input type="hidden" id="transaction-type" value="egreso">
+            
+            <label for="transaction-amount">Monto</label>
+            <input type="number" id="transaction-amount" class="neumorphic-inset" placeholder="10.000" required>
+            
+            <label for="transaction-category">Categoría</label>
+            <select id="transaction-category" class="neumorphic-inset" required>
+                </select>
+            
+            <label for="transaction-account">Cuenta</label>
+            <select id="transaction-account" class="neumorphic-inset" required>
+                </select>
+            
+            <label for="transaction-date">Fecha</label>
+            <input type="date" id="transaction-date" class="neumorphic-inset" required>
+            
+            <label for="transaction-notes">Notas (Opcional)</label>
+            <input type="text" id="transaction-notes" class="neumorphic-inset" placeholder="Café con amigos">
+            
+            <button type="submit" class="btn-primary neumorphic-convex">Guardar</button>
+            <button type="button" class="btn-secondary btn-close-modal">Cancelar</button>
+        </form>
+    </div>
+
+    <div id="modal-add-account" class="modal neumorphic-convex">
+        <h2>Nueva Cuenta</h2>
+        <form id="form-add-account">
+            <label for="account-name">Nombre (Ej. Santander, Efectivo)</label>
+            <input type="text" id="account-name" class="neumorphic-inset" required>
+            <label for="account-balance">Saldo Inicial</label>
+            <input type="number" id="account-balance" class="neumorphic-inset" placeholder="25.000" required>
+            <button type="submit" class="btn-primary neumorphic-convex">Crear Cuenta</button>
+            <button type="button" class="btn-secondary btn-close-modal">Cancelar</button>
+        </form>
+    </div>
+
+    <div id="modal-add-goal" class="modal neumorphic-convex">
+        <h2>Nueva Meta de Ahorro</h2>
+        <form id="form-add-goal">
+            <label for="goal-name">Nombre (Ej. Vacaciones)</label>
+            <input type="text" id="goal-name" class="neumorphic-inset" required>
+            <label for="goal-target">Monto Objetivo</label>
+            <input type="number" id="goal-target" class="neumorphic-inset" placeholder="100.000" required>
+            <button type="submit" class="btn-primary neumorphic-convex">Crear Meta</button>
+            <button type="button" class="btn-secondary btn-close-modal">Cancelar</button>
+        </form>
+    </div>
+
+    <div id="modal-add-debt" class="modal neumorphic-convex">
+        <h2>Registrar Deuda</h2>
+        <form id="form-add-debt">
+            <label for="debt-name">Concepto (Ej. Préstamo Juan)</label>
+            <input type="text" id="debt-name" class="neumorphic-inset" required>
+            <label for="debt-total">Monto Total</label>
+            <input type="number" id="debt-total" class="neumorphic-inset" placeholder="10.000" required>
+            <button type="submit" class="btn-primary neumorphic-convex">Registrar Deuda</button>
+            <button type="button" class="btn-secondary btn-close-modal">Cancelar</button>
+        </form>
+    </div>
+
+    <div id="modal-add-savings" class="modal neumorphic-convex">
+        <h2>Abonar a Meta</h2>
+        <form id="form-add-savings">
+            <input type="hidden" id="savings-goal-id">
+            <label for="savings-amount">Monto a abonar</glabel>
+            <input type="number" id="savings-amount" class="neumorphic-inset" required>
+            <label for="savings-account">Desde la cuenta</label>
+            <select id="savings-account" class="neumorphic-inset" required>
+                </select>
+            <button type="submit" class="btn-primary neumorphic-convex">Abonar</button>
+            <button type="button" class="btn-secondary btn-close-modal">Cancelar</button>
+        </form>
+    </div>
+
+    <div id="modal-pay-debt" class="modal neumorphic-convex">
+        <h2>Pagar Deuda</h2>
+        <form id="form-pay-debt">
+            <input type="hidden" id="payment-debt-id">
+            <label for="payment-amount">Monto a pagar</glabel>
+            <input type="number" id="payment-amount" class="neumorphic-inset" required>
+            <label for="payment-account">Desde la cuenta</label>
+            <select id="payment-account" class="neumorphic-inset" required>
+                </select>
+            <button type="submit" class="btn-primary neumorphic-convex">Pagar</button>
+            <button type="button" class="btn-secondary btn-close-modal">Cancelar</button>
+        </form>
+    </div>
+
+    <div id="modal-settings" class="modal neumorphic-convex">
+        <h2>Configuración</h2>
+        <h3>Gestionar Categorías</h3>
+        <form id="form-add-category">
+            <input type="text" id="new-category-name" class="neumorphic-inset" placeholder="Nueva categoría (ej. Ocio)" required>
+            <button type="submit" class="btn-primary neumorphic-convex">Añadir</button>
+        </form>
+        <div id="category-list">
+            </div>
+        <hr>
+        <button id="btn-reset-data" class="btn-danger neumorphic-convex">Resetear Todos los Datos</button>
+        <button type="button" class="btn-secondary btn-close-modal" style="margin-top: 20px;">Cerrar</button>
+    </div>
+
+
+    <script src="js/script.js" defer></script>
+</body>
+</html>
