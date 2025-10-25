@@ -37,7 +37,14 @@ body {
     color: var(--text-color);
     transition: background-color 0.3s ease, color 0.3s ease;
     font-size: 16px;
+    /* Corrección para la ruta del SVG de la flecha del select */
+    --bg-select-arrow: url("data:image/svg+xml;charset=UTF8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 10 6'%3E%3Cpath fill='%23333a4f' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
 }
+
+body.dark-mode {
+    --bg-select-arrow: url("data:image/svg+xml;charset=UTF8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 10 6'%3E%3Cpath fill='%23e0e5ec' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
+}
+
 
 h1, h2, h3 {
     color: var(--text-color);
@@ -255,13 +262,6 @@ select.neumorphic-inset {
     background-size: 10px;
     color: var(--text-color);
 }
-body {
-    --bg-select-arrow: url("data:image/svg+xml;charset=UTF8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 10 6'%3E%3Cpath fill='%23${encodeURIComponent('333a4f').substring(0, 6)}' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
-}
-
-body.dark-mode {
-    --bg-select-arrow: url("data:image/svg+xml;charset=UTF8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 10 6'%3E%3Cpath fill='%23${encodeURIComponent('e0e5ec').substring(0, 6)}' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
-}
 
 .toggle-group {
     display: flex;
@@ -355,15 +355,15 @@ button {
 }
 
 /* Colores aleatorios para iconos de cuenta */
-.account-logo-icon.color-0 { background-color: #6C5CE7; } /* Amethyst */
-.account-logo-icon.color-1 { background-color: #00B894; } /* Medium Turquoise */
-.account-logo-icon.color-2 { background-color: #FF7675; } /* Coral */
-.account-logo-icon.color-3 { background-color: #FFEAA7; color: #333a4f; } /* Cream */
-.account-logo-icon.color-4 { background-color: #74B9FF; } /* Sky Blue */
-.account-logo-icon.color-5 { background-color: #FDCB6E; color: #333a4f; } /* Mustard */
-.account-logo-icon.color-6 { background-color: #A29BFE; } /* Lavender */
-.account-logo-icon.color-7 { background-color: #55E6C1; } /* Mint */
-.account-logo-icon.color-8 { background-color: #FAB1A0; color: #333a4f; } /* Peach */
+.account-logo-icon.color-0 { background-color: #6C5CE7; }
+.account-logo-icon.color-1 { background-color: #00B894; }
+.account-logo-icon.color-2 { background-color: #FF7675; }
+.account-logo-icon.color-3 { background-color: #FFEAA7; color: #333a4f; }
+.account-logo-icon.color-4 { background-color: #74B9FF; }
+.account-logo-icon.color-5 { background-color: #FDCB6E; color: #333a4f; }
+.account-logo-icon.color-6 { background-color: #A29BFE; }
+.account-logo-icon.color-7 { background-color: #55E6C1; }
+.account-logo-icon.color-8 { background-color: #FAB1A0; color: #333a4f; }
 
 .account-summary-card p {
     font-size: 14px;
@@ -381,7 +381,15 @@ button {
     padding: 15px;
     border-radius: 15px;
     margin-bottom: 10px;
+    /* *** NUEVO *** */
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
+/* *** NUEVO *** */
+.transaction-item:active {
+    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+}
+
 .transaction-item.neumorphic-concave {
     padding: 15px; /* Neumorphic needs padding */
 }
@@ -460,6 +468,19 @@ button {
     font-weight: 700;
 }
 
+/* *** ARREGLO DE BUG *** */
+/* Pantalla Análisis - Arreglo de Gráfico */
+.chart-container {
+    position: relative; /* Necesario para Chart.js */
+    height: 350px;       /* Altura fija para el contenedor */
+    max-width: 100%;     /* Asegurarse que no se desborde */
+    padding-bottom: 25px; /* Más espacio para la leyenda */
+}
+
+#category-chart {
+    max-height: 100%; /* El canvas no debe ser más alto que el contenedor */
+}
+
 /* Pantalla Metas y Deudas */
 .goal-card, .debt-card {
     padding: 20px;
@@ -523,4 +544,19 @@ hr {
     height: 1px;
     background-color: var(--shadow-dark);
     margin: 20px 0;
+}
+
+/* *** NUEVO *** */
+/* Estilos para el modal de edición */
+#form-edit-transaction p {
+    text-align: center;
+    color: var(--text-color-light);
+    margin-bottom: 0;
+}
+#form-edit-transaction p strong {
+    color: var(--text-color);
+    text-transform: capitalize;
+}
+#btn-delete-transaction {
+    margin-top: 5px;
 }
