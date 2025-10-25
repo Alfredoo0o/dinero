@@ -24,7 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalAddSavings = document.getElementById('modal-add-savings');
     const modalPayDebt = document.getElementById('modal-pay-debt');
     const modalSettings = document.getElementById('modal-settings');
-    
+    // *** NUEVO: Modal de Edición ***
+    const modalEditTransaction = document.getElementById('modal-edit-transaction');
+
     // Formularios
     const formAddTransaction = document.getElementById('form-add-transaction');
     const formAddAccount = document.getElementById('form-add-account');
@@ -33,7 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const formAddSavings = document.getElementById('form-add-savings');
     const formPayDebt = document.getElementById('form-pay-debt');
     const formAddCategory = document.getElementById('form-add-category');
-
+    // *** NUEVO: Formulario de Edición ***
+    const formEditTransaction = document.getElementById('form-edit-transaction');
+    const btnDeleteTransaction = document.getElementById('btn-delete-transaction');
+    const editTransactionIdInput = document.getElementById('edit-transaction-id');
+    
     // Selectores de Transacción
     const btnToggleIngreso = document.getElementById('btn-toggle-ingreso');
     const btnToggleEgreso = document.getElementById('btn-toggle-egreso');
@@ -282,6 +288,40 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAll();
     }
 
+    // *** NUEVO: Abrir Modal de Edición ***
+    function openEditModal(transactionId) {
+        const transaction = db.transactions.find(t => t.id === transactionId);
+        if (!transaction) return;
+
+        // Guardar el ID en el input oculto
+        editTransactionIdInput.value = transactionId;
+
+        // Poblar los campos del formulario
+        document.getElementById('edit-transaction-type-display').textContent = transaction.type;
+        document.getElementById('edit-transaction-amount').value = transaction.amount;
+        document.getElementById('edit-transaction-date').value = transaction.date;
+        document.getElementById('edit-transaction-notes').value = transaction.notes;
+
+        // Poblar <select> de categorías (solo las del tipo de transacción)
+        const categorySelect = document.getElementById('edit-transaction-category');
+        categorySelect.innerHTML = '';
+        db.settings.categories[transaction.type].forEach(cat => {
+            categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+        categorySelect.value = transaction.category; // Seleccionar la correcta
+
+        // Poblar <select> de cuentas
+        const accountSelect = document.getElementById('edit-transaction-account');
+        accountSelect.innerHTML = '';
+        db.accounts.forEach(account => {
+            accountSelect.innerHTML += `<option value="${account.id}">${account.name}</option>`;
+        });
+        accountSelect.value = transaction.accountId; // Seleccionar la correcta
+
+        openModal(modalEditTransaction);
+    }
+
+
     // --- Metas ---
     function addGoal(name, targetAmount) {
         const newGoal = {
@@ -299,9 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const goal = db.goals.find(g => g.id === goalId);
         if (goal) {
             goal.savedAmount += parseFloat(amount);
-            // Registrar como egreso
             addTransaction('egreso', amount, 'Ahorro Meta', fromAccountId, getTodayDate(), `Abono a meta: ${goal.name}`);
-            // No llamamos a renderAll() porque addTransaction ya lo hace, que a su vez llama a renderGoalsScreen
         }
     }
 
@@ -322,15 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const debt = db.debts.find(d => d.id === debtId);
         if (debt) {
             debt.paidAmount += parseFloat(amount);
-            // Registrar como egreso
             addTransaction('egreso', amount, 'Pago Deuda', fromAccountId, getTodayDate(), `Pago de: ${debt.name}`);
-            // No llamamos a renderAll() porque addTransaction ya lo hace, que a su vez llama a renderDebtsScreen
         }
     }
 
     // --- Categorías ---
     function addCategory(name) {
-        // Asegurarse de que no haya duplicados y que no sea una cadena vacía
         if (name && !db.settings.categories.egreso.includes(name) && !db.settings.categories.ingreso.includes(name)) {
             db.settings.categories.egreso.push(name); // Por defecto se añade a egreso
             saveDB();
@@ -340,14 +375,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function deleteCategory(name) {
-        // No permitir borrar categorías por defecto o usadas
         const defaultCategories = ['Comida', 'Bencina', 'Transporte', 'Ocio', 'Cuentas', 'Ropa', 'Otros', 'Sueldo', 'Regalo', 'Pago Deuda', 'Ahorro Meta'];
         if (defaultCategories.includes(name)) {
             alert('No puedes eliminar una categoría predeterminada.');
             return;
         }
         
-        // Verificar si la categoría está en uso
         const isInUse = db.transactions.some(t => t.category === name);
         if (isInUse) {
             alert('No puedes eliminar esta categoría porque está en uso en tus transacciones.');
@@ -363,9 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 6. FUNCIONES DE RENDERIZADO (Actualizar UI) ---
     
-    // Función maestra para refrescar todo
     function renderAll() {
-        // Ejecuta la función de renderizado de la pantalla activa
         const activeScreen = document.querySelector('.screen.active');
         if (!activeScreen) {
              renderSummary(); // Default
@@ -376,19 +407,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'screen-analisis': renderAnalysisScreen(); break;
                 case 'screen-metas': renderGoalsScreen(); break;
                 case 'screen-deudas': renderDebtsScreen(); break;
-                case 'screen-settings': renderCategoryList(); break; // Para cuando modal settings este abierto
+                case 'screen-settings': renderCategoryList(); break; 
             }
         }
-        updateAccountDropdowns(); // Siempre refrescar dropdowns de cuentas
-        updateCategoryDropdowns(); // Siempre refrescar dropdowns de categorías
+        updateAccountDropdowns(); // Siempre refrescar dropdowns
+        updateCategoryDropdowns(); 
     }
 
     // RENDER: Resumen
     function renderSummary() {
-        // 1. Patrimonio Total
         document.getElementById('total-balance').textContent = formatCurrency(getTotalBalance());
         
-        // 2. Cuentas en Resumen
         summaryAccountsList.innerHTML = '';
         if (db.accounts.length === 0) {
             summaryAccountsList.innerHTML = '<p class="empty-state">Añade tu primera cuenta para ver un resumen.</p>';
@@ -407,7 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        // 3. Transacciones Recientes
         summaryTransactionsList.innerHTML = '';
         const recentTransactions = [...db.transactions].sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
         
@@ -417,8 +445,10 @@ document.addEventListener('DOMContentLoaded', () => {
             recentTransactions.forEach(t => {
                 const icon = t.type === 'ingreso' ? 'ph-arrow-up-right' : 'ph-arrow-down-left';
                 const sign = t.type === 'ingreso' ? '+' : '-';
+                
+                // *** MODIFICADO: Añadido data-id="${t.id}" ***
                 summaryTransactionsList.innerHTML += `
-                    <div class="transaction-item neumorphic-concave">
+                    <div class="transaction-item neumorphic-concave" data-id="${t.id}">
                         <div class="transaction-details">
                             <div class="transaction-icon ${t.type} neumorphic-convex">
                                 <i class="ph ${icon}"></i>
@@ -482,7 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
             });
-            // Añadir event listeners a los botones de abonar
             document.querySelectorAll('.btn-add-savings').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const goalId = e.currentTarget.dataset.id;
@@ -523,7 +552,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
             });
-            // Añadir event listeners a los botones de pagar
             document.querySelectorAll('.btn-pay-debt').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const debtId = e.currentTarget.dataset.id;
@@ -579,7 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: false, // ¡IMPORTANTE para el bug fix!
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -634,7 +662,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         });
         
-        // Listeners para botones de borrar
         document.querySelectorAll('.btn-delete-category').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const catName = e.currentTarget.dataset.name;
@@ -648,14 +675,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // RENDER: Actualizar <select> de categorías
     function updateCategoryDropdowns() {
         const type = transactionTypeInput.value;
-        const categories = db.settings.categories[type].filter(cat => !['Ahorro Meta', 'Pago Deuda'].includes(cat)); // Excluir categorías automáticas
+        const categories = db.settings.categories[type].filter(cat => !['Ahorro Meta', 'Pago Deuda'].includes(cat)); 
         
         transactionCategorySelect.innerHTML = '';
         categories.forEach(cat => {
             transactionCategorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
         });
         
-        // Si no hay categorías, añadir una opción deshabilitada
         if (categories.length === 0) {
             transactionCategorySelect.innerHTML = '<option value="" disabled selected>Añade categorías en Configuración</option>';
         }
@@ -674,10 +700,10 @@ document.addEventListener('DOMContentLoaded', () => {
             select.innerHTML += `<option value="${account.id}">${account.name}</option>`;
         });
         
-        // Actualizar también los otros selects que puedan existir
         if (selectId === 'transaction-account') {
             updateAccountDropdowns('savings-account');
             updateAccountDropdowns('payment-account');
+            updateAccountDropdowns('edit-transaction-account'); // Asegurarse de actualizar el de edición también
         }
     }
 
@@ -709,67 +735,16 @@ document.addEventListener('DOMContentLoaded', () => {
         addAccount(
             document.getElementById('account-name').value,
             document.getElementById('account-balance').value
-            // Logo ya no se pide como input, se genera automáticamente
         );
         formAddAccount.reset();
         closeModal();
     });
     
-    // Form: Añadir Meta
-    formAddGoal.addEventListener('submit', (e) => {
-        e.preventDefault();
-        addGoal(
-            document.getElementById('goal-name').value,
-            document.getElementById('goal-target').value
-        );
-        formAddGoal.reset();
-        closeModal();
-    });
-    
-    // Form: Añadir Deuda
-    formAddDebt.addEventListener('submit', (e) => {
-        e.preventDefault();
-        addDebt(
-            document.getElementById('debt-name').value,
-            document.getElementById('debt-total').value
-        );
-        formAddDebt.reset();
-        closeModal();
-    });
-    
-    // Form: Añadir Ahorro a Meta
-    formAddSavings.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const accountId = document.getElementById('savings-account').value;
-        if (!accountId) {
-            alert('Por favor, crea una cuenta antes de abonar a una meta.');
-            return;
-        }
-        addSavingsToGoal(
-            document.getElementById('savings-goal-id').value,
-            document.getElementById('savings-amount').value,
-            accountId
-        );
-        formAddSavings.reset();
-        closeModal();
-    });
-    
-    // Form: Pagar Deuda
-    formPayDebt.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const accountId = document.getElementById('payment-account').value;
-        if (!accountId) {
-            alert('Por favor, crea una cuenta antes de realizar un pago.');
-            return;
-        }
-        addPaymentToDebt(
-            document.getElementById('payment-debt-id').value,
-            document.getElementById('payment-amount').value,
-            accountId
-        );
-        formPayDebt.reset();
-        closeModal();
-    });
+    // Forms: Metas y Deudas (sin cambios)
+    formAddGoal.addEventListener('submit', (e) => { e.preventDefault(); addGoal(document.getElementById('goal-name').value, document.getElementById('goal-target').value); formAddGoal.reset(); closeModal(); });
+    formAddDebt.addEventListener('submit', (e) => { e.preventDefault(); addDebt(document.getElementById('debt-name').value, document.getElementById('debt-total').value); formAddDebt.reset(); closeModal(); });
+    formAddSavings.addEventListener('submit', (e) => { e.preventDefault(); const accountId = document.getElementById('savings-account').value; if (!accountId) { alert('Crea una cuenta primero'); return; } addSavingsToGoal(document.getElementById('savings-goal-id').value, document.getElementById('savings-amount').value, accountId); formAddSavings.reset(); closeModal(); });
+    formPayDebt.addEventListener('submit', (e) => { e.preventDefault(); const accountId = document.getElementById('payment-account').value; if (!accountId) { alert('Crea una cuenta primero'); return; } addPaymentToDebt(document.getElementById('payment-debt-id').value, document.getElementById('payment-amount').value, accountId); formPayDebt.reset(); closeModal(); });
     
     // Form: Añadir Categoría
     formAddCategory.addEventListener('submit', (e) => {
@@ -781,12 +756,63 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Botón: Resetear Datos
     document.getElementById('btn-reset-data').addEventListener('click', () => {
-        if (confirm('¿ESTÁS SEGURO? Se borrarán TODOS tus datos (cuentas, transacciones, metas, etc.) de forma permanente.')) {
+        if (confirm('¿ESTÁS SEGURO? Se borrarán TODOS tus datos...')) {
             localStorage.removeItem('finanzasDB');
-            // Recargar la app para empezar de cero
             location.reload();
         }
     });
+
+    // *** NUEVO: Listeners para el Modal de Edición ***
+
+    // Listener para abrir el modal (Delegación de eventos)
+    summaryTransactionsList.addEventListener('click', (e) => {
+        // Encontrar el item de transacción más cercano al que se hizo clic
+        const transactionItem = e.target.closest('.transaction-item');
+        if (transactionItem) {
+            const transactionId = transactionItem.dataset.id;
+            openEditModal(transactionId);
+        }
+    });
+
+    // Listener para el botón ACTUALIZAR
+    formEditTransaction.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const transactionId = editTransactionIdInput.value;
+        const transactionIndex = db.transactions.findIndex(t => t.id === transactionId);
+        
+        if (transactionIndex > -1) {
+            // Actualizar el objeto de transacción en la base de datos
+            db.transactions[transactionIndex] = {
+                ...db.transactions[transactionIndex], // Mantener tipo, id, etc.
+                amount: parseFloat(document.getElementById('edit-transaction-amount').value),
+                category: document.getElementById('edit-transaction-category').value,
+                accountId: document.getElementById('edit-transaction-account').value,
+                date: document.getElementById('edit-transaction-date').value,
+                notes: document.getElementById('edit-transaction-notes').value,
+                timestamp: new Date(document.getElementById('edit-transaction-date').value).getTime() // Recalcular timestamp
+            };
+            
+            saveDB();
+            closeModal();
+            renderAll(); // Refrescar toda la UI
+        }
+    });
+    
+    // Listener para el botón ELIMINAR
+    btnDeleteTransaction.addEventListener('click', () => {
+        const transactionId = editTransactionIdInput.value;
+        
+        if (confirm('¿Estás seguro de que quieres eliminar esta transacción? Esta acción no se puede deshacer.')) {
+            // Filtrar la base de datos para excluir esta transacción
+            db.transactions = db.transactions.filter(t => t.id !== transactionId);
+            
+            saveDB();
+            closeModal();
+            renderAll(); // Refrescar toda la UI
+        }
+    });
+
 
     // --- 8. INICIALIZACIÓN DE LA APP ---
     
